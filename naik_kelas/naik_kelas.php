@@ -39,12 +39,11 @@
 					<div class="input-group">
 						<select name="kekelas"  id="kekelas" class="form-control custom-select">
 							<option value="" selected>Pilih Kelas</option>
-							<option value="1A">Kelas 1A</option>
 							<option value="2A">Kelas 2A</option>
 							<option value="3A">Kelas 3A</option>
 						</select>
 						<span class="input-group-btn">
-							<button class="btn btn-default" type="button" id="proses">Proses</button>
+							<button class="btn btn-default" type="button" id="proses" disabled>Proses</button>
 						</span>
 					</div><!-- /input-group -->
 				</div>
@@ -66,23 +65,41 @@
 				
 				<!-- Right side select -->
 				<div class="col-xs-5 col-md-5 col-sm-5">
-					<select name="to[]" id="mySideToSideSelect_to" class="form-control" size="10" multiple="multiple"></select>
+					<select name="to[]" id="mySideToSideSelect_to" class="form-control selectmenu" size="10" multiple="multiple"></select>
 				</div>
 			</div>
 			<script>
 				$(document).ready(function() {
+					$("#mySideToSideSelect_rightAll").attr('disabled','disabled');
+					$("#mySideToSideSelect_rightSelected").attr('disabled','disabled');
+					$("#mySideToSideSelect_leftSelected").attr('disabled','disabled');
+					$("#mySideToSideSelect_leftAll").attr('disabled','disabled');
+					$("#kekelas").attr('disabled','disabled');
+					$("#proses").attr('disabled','disabled');
+					
 					$('#mySideToSideSelect').multiselect();
+					
 					$(document).on('click', '#tampilkan', function(e){
 						e.preventDefault();
 						var deptid = $("#dari_kelas").val();
 						$.ajax({
-							url: 'getsiswa.php',
+							url: 'naik_kelas/getsiswa.php',
 							type: 'post',
 							data: {depart:deptid},
 							dataType: 'json',
 							success:function(response){
+								$("#mySideToSideSelect_rightAll").removeAttr('disabled');
+								$("#mySideToSideSelect_rightSelected").removeAttr('disabled');
+								$("#mySideToSideSelect_leftSelected").removeAttr('disabled');
+								$("#mySideToSideSelect_leftAll").removeAttr('disabled');
 								var len = response.length;
-								
+								if (len==0) {
+									$("#mySideToSideSelect_rightAll").attr('disabled','disabled');
+									$("#mySideToSideSelect_rightSelected").attr('disabled','disabled');
+									$("#mySideToSideSelect_leftSelected").attr('disabled','disabled');
+									$("#mySideToSideSelect_leftAll").attr('disabled','disabled');
+									$("#kekelas").append("<option value=''>Pilih kelas</option>");
+								}
 								$("#mySideToSideSelect").empty();
 								for( var i = 0; i<len; i++){
 									var id = response[i]['id'];
@@ -95,25 +112,87 @@
 						});
 					});
 					
+					$('#mySideToSideSelect').dblclick(function() {
+						$("#kekelas").removeAttr('disabled');
+						$("#proses").removeAttr('disabled');
+					});
+					
+					$('#mySideToSideSelect_to').dblclick(function() {
+						var dari = $('#mySideToSideSelect_to').children();
+						var pilihan = dari.length;
+						if(pilihan==0){
+							$("#kekelas").attr('disabled','disabled');
+							$("#proses").attr('disabled','disabled');
+							$("#kekelas option[value='']").remove();
+							$("#kekelas").prepend("<option value='' selected='selected'>Pilih kelas</option>");
+						}
+					});
+					
+					$('#kekelas').on('change', function() {
+						$('#mySideToSideSelect_to option').prop('selected', true);
+						$("#kekelas option[value='']").remove();
+					});
+					
+					$('#mySideToSideSelect_rightAll,#mySideToSideSelect_rightSelected').click(function(){
+						var dari = $('#mySideToSideSelect').children();
+						var pilihan = dari.length;
+						if(pilihan==0){
+							$("#dari_kelas").attr('disabled','disabled');
+							$("#tampilkan").attr('disabled','disabled');
+							// $("#kekelas").prepend("<option value='' selected='selected'>Pilih kelas</option>");
+						}
+						$("#kekelas").removeAttr('disabled');
+						$("#proses").removeAttr('disabled');
+					});
+					
+					
+					
+					$('#mySideToSideSelect_leftSelected').click(function(e){
+						e.preventDefault();
+						var dari = $('#mySideToSideSelect_to').children();
+						var pilihan = dari.length;
+						if(pilihan==0){
+							$("#kekelas").attr('disabled','disabled');
+							$("#proses").attr('disabled','disabled');
+							$("#kekelas option[value='']").remove();
+							$("#kekelas").prepend("<option value='' selected='selected'>Pilih kelas</option>");
+						}
+					});
+					
+					$('#mySideToSideSelect_leftAll').click(function(){
+						$("#kekelas").attr('disabled','disabled');
+						$("#proses").attr('disabled','disabled');
+						$("#dari_kelas").removeAttr('disabled');
+						$("#tampilkan").removeAttr('disabled');
+						$("#kekelas option[value='']").remove();
+						$("#kekelas").prepend("<option value='' selected='selected'>Pilih kelas</option>");
+					});
+					
 					$(document).on('click', '#proses', function(e){
 						e.preventDefault();
-						var deptid = $("#kekelas").val();
+						var kelas = $("#kekelas").val();
+						var realvalues = new Array();//storing the selected values inside an array
+						$('#mySideToSideSelect_to :selected').each(function(i, selected) {
+							realvalues[i] = $(selected).val();
+						});
 						$.ajax({
-							url: 'pindahkelas.php',
+							url: 'naik_kelas/proses.php',
 							type: 'post',
-							data: {depart:deptid},
+							data: {kelas:kelas,pilihan:realvalues},
 							dataType: 'json',
 							success:function(response){
-								var len = response.length;
-								
-								$("#mySideToSideSelect").empty();
-								for( var i = 0; i<len; i++){
-									var id = response[i]['id'];
-									var name = response[i]['name'];
-									
-									$("#mySideToSideSelect").append("<option value='"+id+"'>"+name+"</option>");
-									
+								if(response.status=='ok')
+								{
+									$("#kekelas").attr('disabled','disabled');
+									$("#proses").attr('disabled','disabled');
+									$('#mySideToSideSelect_to option:selected').remove();
+									$("#kekelas").prepend("<option value='' selected='selected'>Pilih kelas</option>");
+									alert('data berhasil diproses');
+									}else{
+									alert('data gagal diproses');
 								}
+								
+								
 							}
 						});
 					});
@@ -124,4 +203,4 @@
 	</div>
 	<?php
 		break;
-	}?>					
+	}?>																															

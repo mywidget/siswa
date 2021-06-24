@@ -1,6 +1,6 @@
 <?php
-session_start();
-require_once ('config/koneksi.php');
+// session_start();
+require_once ('../config/koneksi.php');
 $departid = 0;
 
 if(isset($_POST['depart'])){
