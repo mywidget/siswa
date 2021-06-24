@@ -1,0 +1,11 @@
+<?php
+error_reporting();
+$db_host	= "localhost";
+$db_user	= "root";
+$db_pass	= "";
+$db_name	= "siswa";
+error_reporting(E_ALL ^ E_DEPRECATED); 
+$konek	= mysql_connect($db_host,$db_user,$db_pass,$db_name) or die ("Gagal koneksi ke server");
+mysql_select_db($db_name, $konek) or die ("Gagal mengaktifkan database".mysql_error());
+
+?>
