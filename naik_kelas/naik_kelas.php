@@ -183,6 +183,8 @@
 							success:function(response){
 								if(response.status=='ok')
 								{
+									$("#dari_kelas").removeAttr('disabled');
+									$("#tampilkan").removeAttr('disabled');
 									$("#kekelas").attr('disabled','disabled');
 									$("#proses").attr('disabled','disabled');
 									$('#mySideToSideSelect_to option:selected').remove();
